@@ -1,3 +1,2 @@
-# FriendTechNewUsers
-# FriendTechWatch
 # FT-Watcher
+
