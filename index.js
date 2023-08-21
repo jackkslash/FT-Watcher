@@ -1,10 +1,10 @@
-const { EmbedBuilder } = require('discord.js');
 
 async function test() {
     const ethers = require('ethers');
     const FT = require('./ft.json')
     const axios = require('axios')
-    const { EmbedBuilder } = require('discord.js');
+    const jsdom = require("jsdom");
+
 
     // Configure the provider using an Ethereum node URL
     const provider = new ethers.providers.JsonRpcProvider('https://mainnet.base.org');
@@ -34,27 +34,62 @@ async function test() {
                 if (data.message == "Address/User not found.") {
                     console.log("undefined")
                 } else {
-                    const notableNames = [
-                    ]
-                    let message = {}
-                    if (notableNames.includes(data.twitterUsername)) {
-                        message = {
-                            content: 'https://www.friend.tech/rooms/' + to + "\n https://twitter.com/" + data.twitterUsername + "\n @everyone notable name signed up",
-                            allowed_mentions: { "parse": ["everyone"] }
-                        }
-                    } else {
-                        message = {
-                            content: 'https://www.friend.tech/rooms/' + to + "\n https://twitter.com/" + data.twitterUsername + ""
-                        };
 
-                    }
-                    axios.post(webhookUrl, message)
-                        .then(response => {
-                            console.log('Message sent successfully');
+                    fetch('https://nitter.net/' + data.twitterUsername)
+                        .then(function (response) {
+                            // When the page is loaded convert it to text
+                            return response.text()
                         })
-                        .catch(error => {
-                            console.error('Error sending message:', error);
+                        .then(function (html) {
+                            const dom = new jsdom.JSDOM(html);
+                            const element = dom.window.document.getElementsByClassName("profile-stat-num");
+
+                            // console.log(element[2].innerHTML);
+                            const twitterUserFollowCount = element[2].innerHTML.replace(/\,/g, '');
+                            console.log(twitterUserFollowCount)
+
+                            const notableNames = [
+                            ]
+                            let message = {}
+                            let twName = data.twitterUsername.toLowerCase();
+                            console.log(twName)
+                            if (notableNames.includes(twName)) {
+                                message = {
+                                    content: 'https://www.friend.tech/rooms/' + to + "\n https://twitter.com/" + data.twitterUsername + "\n @everyone notable name signed up",
+                                    allowed_mentions: { "parse": ["everyone"] }
+                                }
+                            } else {
+                                message = {
+                                    content: 'https://www.friend.tech/rooms/' + to + "\n https://twitter.com/" + data.twitterUsername + " " + twitterUserFollowCount
+                                };
+
+                            }
+
+                            if (twitterUserFollowCount >= 1000) {
+                                axios.post("https://discord.com/api/webhooks/1143152574409740329/sntAiaw5E5czOvycjMt8Yly-eAMwY8_jeqpVyD_cOaNIbsGa8F5TQEtoMggQZ_W9ll6g", message)
+                                    .then(response => {
+                                        console.log('Message sent successfully');
+                                    })
+                                    .catch(error => {
+                                        console.error('Error sending message:', error);
+                                    });
+                            } else {
+                                axios.post("https://discord.com/api/webhooks/1142627468168142908/PtFM_V4G6veX2oxtDmH-2z6t3kXqmEZUV9ziw-EsvcntIUJXE0nwZVP5VJXO9YWzxZdv", message)
+                                    .then(response => {
+                                        console.log('Message sent successfully');
+                                    })
+                                    .catch(error => {
+                                        console.error('Error sending message:', error);
+                                    });
+                            }
+
+                        })
+                        .catch(function (err) {
+                            console.log('Failed to fetch page: ', err);
                         });
+
+
+
                 }
 
 
