@@ -1,4 +1,4 @@
-
+require('dotenv').config()
 async function test() {
     const ethers = require('ethers');
     const FT = require('./ft.json')
@@ -15,10 +15,13 @@ async function test() {
 
     // Create a contract instance
     const contract = new ethers.Contract(contractAddress, contractABI, provider);
+    const notableNames = []
 
-    contract.on('Trade', async (from, to, value, event, ethAmount) => {
+    let prevName;
+    contract.on('Trade', async (from, to, value, event, ethAmount, shareAmount, supply) => {
         try {
             if (ethAmount._hex == "0x00") {
+
                 console.log('From:', from);
                 console.log('To:', to);
                 console.log('eth: ', ethAmount._hex)
@@ -29,13 +32,12 @@ async function test() {
                 let response = await fetch("https://prod-api.kosetto.com/users/" + to);
                 let data = await response.json();
                 console.log("https://twitter.com/" + data.twitterUsername);
-                const webhookUrl = "https://discord.com/api/webhooks/1142627468168142908/PtFM_V4G6veX2oxtDmH-2z6t3kXqmEZUV9ziw-EsvcntIUJXE0nwZVP5VJXO9YWzxZdv"
 
                 if (data.message == "Address/User not found.") {
                     console.log("undefined")
                 } else {
 
-                    fetch('https://nitter.net/' + data.twitterUsername)
+                    fetch('https://nitter.cz/' + data.twitterUsername)
                         .then(function (response) {
                             // When the page is loaded convert it to text
                             return response.text()
@@ -44,45 +46,50 @@ async function test() {
                             const dom = new jsdom.JSDOM(html);
                             const element = dom.window.document.getElementsByClassName("profile-stat-num");
 
-                            // console.log(element[2].innerHTML);
+                            console.log(element[2].innerHTML);
                             const twitterUserFollowCount = element[2].innerHTML.replace(/\,/g, '');
                             console.log(twitterUserFollowCount)
 
-                            const notableNames = [
-                            ]
+
                             let message = {}
                             let twName = data.twitterUsername.toLowerCase();
                             console.log(twName)
-                            if (notableNames.includes(twName)) {
-                                message = {
-                                    content: 'https://www.friend.tech/rooms/' + to + "\n https://twitter.com/" + data.twitterUsername + "\n @everyone notable name signed up",
-                                    allowed_mentions: { "parse": ["everyone"] }
+                            if (prevName === twName) {
+                                console.log("REPEAT SKIP")
+                            } else {
+
+                                if (notableNames.includes(twName)) {
+                                    message = {
+                                        content: 'https://www.friend.tech/rooms/' + to + "\n https://twitter.com/" + data.twitterUsername + "\n @everyone notable name signed up",
+                                        allowed_mentions: { "parse": ["everyone"] }
+                                    }
+                                } else {
+                                    message = {
+                                        content: 'https://www.friend.tech/rooms/' + to + "\n https://twitter.com/" + data.twitterUsername + " " + twitterUserFollowCount
+                                    };
                                 }
-                            } else {
-                                message = {
-                                    content: 'https://www.friend.tech/rooms/' + to + "\n https://twitter.com/" + data.twitterUsername + " " + twitterUserFollowCount
-                                };
 
+                                if (twitterUserFollowCount >= 10000) {
+                                    axios.post(process.env.WB2, message)
+                                        .then(response => {
+                                            console.log('Message sent successfully');
+                                        })
+                                        .catch(error => {
+                                            console.error('Error sending message:', error);
+                                        });
+                                    message = {}
+                                } else {
+                                    axios.post(process.env.WB1, message)
+                                        .then(response => {
+                                            console.log('Message sent successfully');
+                                        })
+                                        .catch(error => {
+                                            console.error('Error sending message:', error);
+                                        });
+                                    message = {}
+                                }
                             }
-
-                            if (twitterUserFollowCount >= 1000) {
-                                axios.post("https://discord.com/api/webhooks/1143152574409740329/sntAiaw5E5czOvycjMt8Yly-eAMwY8_jeqpVyD_cOaNIbsGa8F5TQEtoMggQZ_W9ll6g", message)
-                                    .then(response => {
-                                        console.log('Message sent successfully');
-                                    })
-                                    .catch(error => {
-                                        console.error('Error sending message:', error);
-                                    });
-                            } else {
-                                axios.post("https://discord.com/api/webhooks/1142627468168142908/PtFM_V4G6veX2oxtDmH-2z6t3kXqmEZUV9ziw-EsvcntIUJXE0nwZVP5VJXO9YWzxZdv", message)
-                                    .then(response => {
-                                        console.log('Message sent successfully');
-                                    })
-                                    .catch(error => {
-                                        console.error('Error sending message:', error);
-                                    });
-                            }
-
+                            prevName = twName;
                         })
                         .catch(function (err) {
                             console.log('Failed to fetch page: ', err);
