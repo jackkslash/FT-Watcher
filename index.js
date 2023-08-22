@@ -1,8 +1,8 @@
 require('dotenv').config()
+const axios = require('axios')
 async function test() {
     const ethers = require('ethers');
     const FT = require('./ft.json')
-    const axios = require('axios')
     const jsdom = require("jsdom");
 
 
@@ -53,43 +53,38 @@ async function test() {
 
                             let message = {}
                             let twName = data.twitterUsername.toLowerCase();
+                            let notable = false;
                             console.log(twName)
-                            if (prevName === twName) {
+                            console.log(prevName)
+                            if (prevName === twName || twName === "hunilibaskan") {
                                 console.log("REPEAT SKIP")
                             } else {
 
                                 if (notableNames.includes(twName)) {
-                                    message = {
+                                    messageNot = {
                                         content: 'https://www.friend.tech/rooms/' + to + "\n https://twitter.com/" + data.twitterUsername + "\n @everyone notable name signed up",
                                         allowed_mentions: { "parse": ["everyone"] }
                                     }
+                                    notable = true;
                                 } else {
                                     message = {
                                         content: 'https://www.friend.tech/rooms/' + to + "\n https://twitter.com/" + data.twitterUsername + " " + twitterUserFollowCount
                                     };
                                 }
 
-                                if (twitterUserFollowCount >= 10000) {
-                                    axios.post(process.env.WB2, message)
-                                        .then(response => {
-                                            console.log('Message sent successfully');
-                                        })
-                                        .catch(error => {
-                                            console.error('Error sending message:', error);
-                                        });
-                                    message = {}
+                                if (twitterUserFollowCount >= 10000 && notable == false) {
+                                    req(process.env.WB2, messageNot)
+                                    messageNot = {}
+                                } else if (twitterUserFollowCount >= 10000 && notable == true) {
+                                    req(process.env.WB3, messageNot)
+                                    messageNot = {}
                                 } else {
-                                    axios.post(process.env.WB1, message)
-                                        .then(response => {
-                                            console.log('Message sent successfully');
-                                        })
-                                        .catch(error => {
-                                            console.error('Error sending message:', error);
-                                        });
+                                    req(process.env.WB1, message)
                                     message = {}
                                 }
                             }
                             prevName = twName;
+
                         })
                         .catch(function (err) {
                             console.log('Failed to fetch page: ', err);
@@ -107,5 +102,13 @@ async function test() {
     });
 }
 
-
+function req(socket, message) {
+    axios.post(socket, message)
+        .then(response => {
+            console.log('Message sent successfully');
+        })
+        .catch(error => {
+            console.error('Error sending message:', error);
+        });
+}
 test();
