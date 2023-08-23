@@ -78,9 +78,11 @@ async function test() {
                                 } else if (twitterUserFollowCount >= 10000 && notable == true) {
                                     req(process.env.WB3, messageNot)
                                     messageNot = {}
-                                } else {
+                                } else if (twitterUserFollowCount > 0) {
                                     req(process.env.WB1, message)
                                     message = {}
+                                } else {
+                                    console.log("not enough followers")
                                 }
                             }
                             prevName = twName;
