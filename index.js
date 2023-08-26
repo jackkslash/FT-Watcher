@@ -56,7 +56,7 @@ async function test() {
                             let notable = false;
                             console.log(twName)
                             console.log(prevName)
-                            if (prevName === twName || twName === "hunilibaskan") {
+                            if (prevName === twName) {
                                 console.log("REPEAT SKIP")
                             } else {
 
