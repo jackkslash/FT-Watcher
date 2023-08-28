@@ -15,22 +15,23 @@ async function test() {
 
     // Create a contract instance
     const contract = new ethers.Contract(contractAddress, contractABI, provider);
-    const notableNames = []
+
 
     let prevName;
-    contract.on('Trade', async (from, to, value, event, ethAmount, shareAmount, supply) => {
+    contract.on('Trade', async (from, to, value, event, ethAmount, shareAmount, supply, trader, subject) => {
         try {
-            if (ethAmount._hex == "0x00") {
-
-                console.log('From:', from);
-                console.log('To:', to);
+            if (ethAmount._hex == "0x00" && subject.args.trader == subject.args.subject) {
+                console.log("trader: " + trader)
+                console.log(subject.args.trader)
+                console.log(subject.args.subject)
                 console.log('eth: ', ethAmount._hex)
                 console.log('eth: ', ethAmount)
-                console.log('https://www.friend.tech/rooms/' + to)
-                console.log("https://prod-api.kosetto.com/users/" + to)
+                console.log('https://www.friend.tech/rooms/' + subject.args.subject)
+                console.log("https://prod-api.kosetto.com/users/" + subject.args.subject)
 
-                let response = await fetch("https://prod-api.kosetto.com/users/" + to);
+                let response = await fetch("https://prod-api.kosetto.com/users/" + subject.args.subject);
                 let data = await response.json();
+                console.log(data)
                 console.log("https://twitter.com/" + data.twitterUsername);
 
                 if (data.message == "Address/User not found.") {
@@ -52,6 +53,7 @@ async function test() {
 
 
                             let message = {}
+                            let messageNot = {}
                             let twName = data.twitterUsername.toLowerCase();
                             let notable = false;
                             console.log(twName)
@@ -59,7 +61,6 @@ async function test() {
                             if (prevName === twName) {
                                 console.log("REPEAT SKIP")
                             } else {
-
                                 if (notableNames.includes(twName)) {
                                     messageNot = {
                                         content: 'https://www.friend.tech/rooms/' + to + "\n https://twitter.com/" + data.twitterUsername + "\n @everyone notable name signed up",
@@ -78,7 +79,7 @@ async function test() {
                                 } else if (twitterUserFollowCount >= 10000 && notable == true) {
                                     req(process.env.WB3, messageNot)
                                     messageNot = {}
-                                } else if (twitterUserFollowCount > 0) {
+                                } else if (twitterUserFollowCount > 1) {
                                     req(process.env.WB1, message)
                                     message = {}
                                 } else {
@@ -104,13 +105,14 @@ async function test() {
     });
 }
 
+
 function req(socket, message) {
     axios.post(socket, message)
         .then(response => {
             console.log('Message sent successfully');
         })
         .catch(error => {
-            console.error('Error sending message:', error);
+            console.error('Error sending message');
         });
 }
 test();
