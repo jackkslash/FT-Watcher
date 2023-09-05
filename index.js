@@ -15,7 +15,7 @@ async function test() {
 
     // Create a contract instance
     const contract = new ethers.Contract(contractAddress, contractABI, provider);
-
+    const notableNames = []
 
     let prevName;
     contract.on('Trade', async (from, to, value, event, ethAmount, shareAmount, supply, trader, subject) => {
