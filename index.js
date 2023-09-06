@@ -20,15 +20,16 @@ async function test() {
     let prevName;
     contract.on('Trade', async (from, to, value, event, ethAmount, shareAmount, supply, trader, subject) => {
         try {
-            if (ethAmount._hex == "0x00" && subject.args.trader == subject.args.subject) {
+            if (ethAmount._hex == "0x00" && subject.args.trader == subject.args.subject && subject.args.supply.toNumber() == 1) {
                 console.log("trader: " + trader)
                 console.log(subject.args.trader)
                 console.log(subject.args.subject)
                 console.log('eth: ', ethAmount._hex)
                 console.log('eth: ', ethAmount)
+                console.log('supply', subject.args.supply.toNumber())
                 console.log('https://www.friend.tech/rooms/' + subject.args.subject)
                 console.log("https://prod-api.kosetto.com/users/" + subject.args.subject)
-
+                await sleep(1500);
                 let response = await fetch("https://prod-api.kosetto.com/users/" + subject.args.subject);
                 let data = await response.json();
                 console.log(data)
@@ -36,6 +37,10 @@ async function test() {
 
                 if (data.message == "Address/User not found.") {
                     console.log("undefined")
+                    message = {
+                        content: 'https://www.friend.tech/rooms/' + to
+                    };
+                    req(process.env.WB1, message)
                 } else {
 
                     fetch('https://nitter.cz/' + data.twitterUsername)
@@ -51,9 +56,7 @@ async function test() {
                             const twitterUserFollowCount = element[2].innerHTML.replace(/\,/g, '');
                             console.log(twitterUserFollowCount)
 
-
                             let message = {}
-                            let messageNot = {}
                             let twName = data.twitterUsername.toLowerCase();
                             let notable = false;
                             console.log(twName)
@@ -62,7 +65,7 @@ async function test() {
                                 console.log("REPEAT SKIP")
                             } else {
                                 if (notableNames.includes(twName)) {
-                                    messageNot = {
+                                    message = {
                                         content: 'https://www.friend.tech/rooms/' + to + "\n https://twitter.com/" + data.twitterUsername + "\n @everyone notable name signed up",
                                         allowed_mentions: { "parse": ["everyone"] }
                                     }
@@ -74,11 +77,11 @@ async function test() {
                                 }
 
                                 if (twitterUserFollowCount >= 10000 && notable == false) {
-                                    req(process.env.WB2, messageNot)
-                                    messageNot = {}
+                                    req(process.env.WB2, message)
+                                    message = {}
                                 } else if (twitterUserFollowCount >= 10000 && notable == true) {
-                                    req(process.env.WB3, messageNot)
-                                    messageNot = {}
+                                    req(process.env.WB3, message)
+                                    message = {}
                                 } else if (twitterUserFollowCount > 1) {
                                     req(process.env.WB1, message)
                                     message = {}
@@ -87,17 +90,11 @@ async function test() {
                                 }
                             }
                             prevName = twName;
-
                         })
                         .catch(function (err) {
                             console.log('Failed to fetch page: ', err);
                         });
-
-
-
                 }
-
-
             }
         } catch (error) {
             console.log(error)
@@ -105,6 +102,9 @@ async function test() {
     });
 }
 
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 function req(socket, message) {
     axios.post(socket, message)
