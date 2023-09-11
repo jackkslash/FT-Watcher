@@ -1,6 +1,7 @@
 const axios = require('axios')
 require('dotenv').config()
-const notableNames = []
+
+const notableNames = require("./notableList")
 
 function post(ws, m) {
     axios.post(ws, m)
@@ -13,7 +14,8 @@ function post(ws, m) {
 }
 
 async function check() {
-    let userindex = 164434;
+    console.log(notableNames)
+    let userindex;
     while (true) {
         console.log(userindex)
         const req = await fetch("https://prod-api.kosetto.com/users/by-id/" + userindex)
