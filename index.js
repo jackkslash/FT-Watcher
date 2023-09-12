@@ -66,13 +66,13 @@ async function test() {
                             } else {
                                 if (notableNames.includes(twName)) {
                                     message = {
-                                        content: 'https://www.friend.tech/rooms/' + to + "\n https://twitter.com/" + data.twitterUsername + "\n @everyone notable name signed up",
+                                        content: 'https://www.friend.tech/rooms/' + to + "\n https://basescan.org/address/" + to + "\n https://twitter.com/" + data.twitterUsername + "\n @everyone notable name signed up",
                                         allowed_mentions: { "parse": ["everyone"] }
                                     }
                                     notable = true;
                                 } else {
                                     message = {
-                                        content: 'https://www.friend.tech/rooms/' + to + "\n https://twitter.com/" + data.twitterUsername + " " + twitterUserFollowCount
+                                        content: 'https://www.friend.tech/rooms/' + to + "\n https://basescan.org/address/" + to + "\n https://twitter.com/" + data.twitterUsername + " " + twitterUserFollowCount
                                     };
                                 }
 
