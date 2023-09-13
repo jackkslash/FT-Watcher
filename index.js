@@ -79,7 +79,7 @@ async function test() {
                                 if (twitterUserFollowCount >= 10000 && notable == false) {
                                     req(process.env.WB2, message)
                                     message = {}
-                                } else if (twitterUserFollowCount >= 10000 && notable == true) {
+                                } else if (notable == true) {
                                     req(process.env.WB3, message)
                                     message = {}
                                 } else if (twitterUserFollowCount > 1) {

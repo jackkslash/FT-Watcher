@@ -35,41 +35,40 @@ async function check() {
                 }
 
                 post(process.env.WBNU, message)
+                userindex++;
             }
             while (res.message) {
                 console.log("trying again")
                 const req = await fetch("https://prod-api.kosetto.com/users/by-id/" + userindex)
                 const res = await req.json();
                 console.log(res)
-                await new Promise(r => setTimeout(r, 2000));
+
                 if (!res.message) {
                     let tw = res.twitterUsername;
                     if (notableNames.includes(tw)) {
                         message = {
-                            content: 'https://www.friend.tech/rooms/' + res.address + "\n https://basescan.org/address/" + res.address + "\n https://twitter.com/" + res.twitterUsername + "\n @everyone notable name signed up",
+                            content: 'https://www.friend.tech/rooms/' + res.address + "\n https://basescan.org/address/" + res.address + "\n https://twitter.com/" + res.twitterUsername + " User Number: " + userindex + "\n @everyone notable name signed up",
                             allowed_mentions: { "parse": ["everyone"] }
                         }
                     } else {
                         message = {
-                            content: 'https://www.friend.tech/rooms/' + res.address + "\n https://basescan.org/address/" + res.address + "\n https://twitter.com/" + res.twitterUsername
+                            content: 'https://www.friend.tech/rooms/' + res.address + "\n https://basescan.org/address/" + res.address + "\n https://twitter.com/" + res.twitterUsername + " User Number: " + userindex
                         };
                     }
 
 
                     post(process.env.WBNU, message)
+                    userindex++;
                     break;
                 }
-
+                await new Promise(r => setTimeout(r, 1000));
             }
-            console.log(userindex)
-
             console.log(res)
         } catch (error) {
             console.log(error)
+            await new Promise(r => setTimeout(r, 5000));
         }
 
-
-        userindex++;
         await new Promise(r => setTimeout(r, 1000));
     }
 }
